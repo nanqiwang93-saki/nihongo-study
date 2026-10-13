@@ -35,7 +35,7 @@
         <p>少一点打卡压力，<br />多一点真实进步。</p>
         <span>ゆっくり、着実に。</span>
       </div>
-      <div class="sidebar-footer">LOCAL-FIRST · v1.0</div>
+      <div class="sidebar-footer">LOCAL + CLOUD · v2.0</div>
     </aside>
     <div class="workspace">
       <header class="topbar"><div class="crumb">MY STUDY DESK <span>/</span> <span id="crumb-current">学习概览</span></div><div class="topbar-right"><span class="local-status"><i></i> 本地保存</span><span id="today-text"></span></div></header>
@@ -86,7 +86,7 @@
   let saveWorks=true;
   try{const raw=localStorage.getItem(KEY);if(raw)state=safeState(JSON.parse(raw));}catch(err){console.warn('无法读取本地进度',err);}
   let page='home';
-  function save() {try{localStorage.setItem(KEY,JSON.stringify(state));saveWorks=true;}catch(e){saveWorks=false; toast('浏览器储存失败，请导出备份或检查隐私模式');} updateChrome();}
+  function save() {try{localStorage.setItem(KEY,JSON.stringify(state));saveWorks=true;}catch(e){saveWorks=false; toast('浏览器储存失败，请导出备份或检查隐私模式');} updateChrome();window.dispatchEvent(new Event('nihongo:changed'));}
   const $=q=>document.querySelector(q);
   const root=$('#view');
   function toast(str){const el=$('#toast');el.textContent=str;el.classList.add('visible');clearTimeout(toast._timer);toast._timer=setTimeout(()=>el.classList.remove('visible'),2500);}
@@ -133,12 +133,12 @@
   <div class="columns"><div class="card"><div class="card-heading"><h2 class="card-title">登记一套模拟卷</h2></div><form id="exam-form"><div class="form-row"><div class="field"><label>考试等级</label><select name="level"><option>N2</option><option>N3</option></select></div><div class="field"><label>练习日期</label><input type="date" name="date" value="${today()}" max="${today()}" required></div></div><div class="form-row"><div class="field"><label>语言知识（0–60）</label><input type="number" min="0" max="60" name="lang" required placeholder="0"></div><div class="field"><label>阅读（0–60）</label><input type="number" min="0" max="60" name="read" required placeholder="0"></div></div><div class="field"><label>听力（0–60）</label><input type="number" min="0" max="60" name="listen" required placeholder="0"></div><button class="button" type="submit">保存模拟成绩 ＋</button></form><p class="footnote">请输入已经换算为 0–60 的各科分数。JLPT 正式成绩采用尺度得分，原始答对题数不能直接等同正式成绩。</p></div>
   <div class="card"><div class="card-heading"><h2 class="card-title">最近一次模拟</h2></div>${last?`<div class="eyebrow">${escapeHTML(last.level)} · ${escapeHTML(last.date)}</div><div class="stat-value" style="font-size:40px">${last.lang+last.read+last.listen}<small>/180</small></div><div class="flex" style="margin:15px 0"><span class="pill ${pass(last)?'green':'orange'}">${pass(last)?'参考标准达标':'尚未达到参考标准'}</span></div>${[['语言知识',last.lang],['阅读',last.read],['听力',last.listen]].map(([t,v])=>`<div class="progress-row"><div class="progress-title"><span>${t}</span><span>${v}/60</span></div>${bar(v/60*100)}</div>`).join('')}`:`<div class="empty"><span class="empty-icon">◎</span>还没有模拟成绩。<br>基础阶段先学教材，不需要急着刷 N2 真题。</div>`}</div>
   <div class="card full-width"><div class="card-heading"><h2 class="card-title">模拟成绩历史</h2></div>${es.length?`<div class="table-wrap"><table class="score-table"><thead><tr><th>日期</th><th>等级</th><th>语言知识</th><th>阅读</th><th>听力</th><th>总分</th><th>参考判断</th><th></th></tr></thead><tbody>${es.map(x=>`<tr><td>${escapeHTML(x.date)}</td><td>${x.level}</td><td>${x.lang}</td><td>${x.read}</td><td>${x.listen}</td><td><b>${x.lang+x.read+x.listen}</b></td><td><span class="pill ${pass(x)?'green':'orange'}">${pass(x)?'达标':'未达标'}</span></td><td><button class="text-link" data-action="delete-exam" data-id="${escapeHTML(x.id)}">删除</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">完成一套标准化模拟卷后，再在这里登记结果。</div>'}<div class="notice"><span>i</span><div>仅按 JLPT 公布的 N2（总分≥90）/ N3（总分≥95）、各得分区≥19 的合格线作学习参考；不代表真实考试通过，也不能用普通练习册的原始分数预测 JLPT 正式尺度得分。</div></div></div></div>`;}
-  function settingsPage(){return `${heading('PREFERENCES & BACKUP','设置与备份','你的进度保存在当前浏览器。建议定期备份，尤其是准备换设备时。')}
+  function settingsPage(){return `${heading('PREFERENCES & BACKUP','设置与备份','本机保留学习记录；登录后可以同步到云端。建议定期下载备份。')}
   <div class="card"><div class="setting-block"><div><h3>JLPT 目标考试窗口</h3><p>7 月作为冲刺窗口，12 月作为稳妥备选。2027 年正式考试日期以官方公告为准。</p></div><select id="goal-select" aria-label="考试目标月份"><option value="2027-07" ${state.goal==='2027-07'?'selected':''}>2027 年 7 月 · 冲刺</option><option value="2027-12" ${state.goal==='2027-12'?'selected':''}>2027 年 12 月 · 备选</option></select></div>
   <div class="setting-block"><div><h3>导出学习记录</h3><p>下载包含教材状态、复习卡、学习日志、模拟成绩和今日任务的 JSON 备份文件。可以存放在电脑、网盘或 U 盘。</p></div><button class="button secondary" data-action="export">下载 JSON 备份 ↓</button></div>
   <div class="setting-block"><div><h3>从备份恢复</h3><p>导入此前导出的 JSON 文件。注意：导入会替换当前全部学习记录。请在导入前先导出当前备份。</p></div><button class="button secondary" data-action="import">选择备份文件 ↑</button></div>
-  <div class="setting-block"><div><h3>清空所有记录</h3><p>会删除此浏览器中的全部学习记录。清空后不可撤销，除非你保留过备份。</p></div><button class="button danger" data-action="reset">清空记录</button></div></div>
-  <div class="notice"><span>⌁</span><div><b>关于存储：</b>首版使用浏览器 localStorage。刷新页面会保留数据，但清理网站数据、使用无痕模式、换浏览器或换设备可能使记录消失。本版没有账号和云端同步，也不会自动把记录传给 ChatGPT。请定期导出备份。建议用本地服务器运行，而不是依赖 file:// 地址。</div></div>`;}
+  <div class="setting-block"><div><h3>清空所有记录</h3><p>会删除当前的学习记录；登录并连接云端时，清空也可能同步到其他设备。请先导出备份。</p></div><button class="button danger" data-action="reset">清空记录</button></div></div>
+  <div class="notice"><span>⌁</span><div><b>关于存储：</b>学习数据先保存在浏览器中。点击右上角「云同步」登录后，可把数据同步至 Firebase；若显示「云端失败」，只代表本机已经保存。更换设备时使用同一邮箱登录。本站不会自动把记录传给 ChatGPT，请定期导出备份。</div></div>`;}
   function render(){root.innerHTML=({home,path:lessonsPage,review:reviewPage,logs:logsPage,exams:examsPage,settings:settingsPage}[page]||home)();updateChrome();}
   function handleLessonStatus(id,value){if(!lessonIndex[id])return;let before=state.lessons[id]||0;let next=Math.round(num(value,0,3));state.lessons[id]=next;const cardId='lesson:'+id;let existing=state.cards.find(x=>x.id===cardId);if(next>=2 && before<2){if(!existing){state.cards.push({id:cardId,title:lessonIndex[id].name,source:lessonIndex[id].unit,note:'合上纸质教材，尝试复述这一课的知识点。',next:addDays(today(),1),step:0,archived:false});}else{existing.archived=false;existing.step=0;existing.next=addDays(today(),1);}}if(next<2&&existing)existing.archived=true;save();render();toast(next>=2&&before<2?'已更新状态，并加入复习计划':'教材进度已保存');}
   function exportData(){const out=JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2);const url=URL.createObjectURL(new Blob([out],{type:'application/json;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`nihongo-journey-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('备份文件已生成');}
@@ -170,10 +170,12 @@
     if(form.id==='review-form'){const title=String(fd.get('title')||'').trim();if(!title){toast('请填写复习主题');return;}state.cards.push({id:uid(),title:title.slice(0,120),source:'自定义复习',note:String(fd.get('note')||'').trim().slice(0,2000),next:addDays(today(),1),step:0,archived:false});save();render();toast('复习卡已添加');}
     if(form.id==='exam-form'){const level=String(fd.get('level'));const date=String(fd.get('date'));const items=['lang','read','listen'].map(x=>Number(fd.get(x)));if(!['N2','N3'].includes(level)||date>today()||items.some(x=>!Number.isInteger(x)||x<0||x>60)){toast('三科分数均应为 0～60 的整数');return;}state.exams.push({id:uid(),date,level,lang:items[0],read:items[1],listen:items[2]});save();render();toast('模拟成绩已保存');}
   });
+  window.NihongoBridge={read:()=>JSON.parse(JSON.stringify(state)),replace:data=>{state=safeState(data);save();render();},backup:exportData};
   const dateObj=new Date();$('#today-text').textContent=`${dateObj.getFullYear()} 年 ${dateObj.getMonth()+1} 月 ${dateObj.getDate()} 日`;
   render();
 })();
 
 </script>
+<script type="module" src="./cloud-sync.js"></script>
 </body>
 </html>
